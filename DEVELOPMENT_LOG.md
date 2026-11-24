@@ -147,6 +147,7 @@ No automated test results are recorded because the tests have not been run.
 - **2026-11-24 — Clearance correction:** removed the extra radius subtraction from `CameraCollision.Solve`, added the padding-only clearance test, re-ran both compile checks (0 errors), and confirmed the final-position overlap check remains consistent. Tests still not executed.
 - **2026-11-24 — Stage 2 manual verification:** user reported walls, recovery, transitions and near-wall look working in Unity 6. Recorded as user-verified, not automated.
 - **2026-11-24 — Stage 2 Ponytail review:** reviewed collision helper, component integration, settings, 9 tests, allocations and Unity 6/Input System compatibility. No critical bug found; optional improvements recorded in section 8. No code changed by the review.
+- **2026-11-24 — Test fixture correction:** `CreateCamera()` deactivates the GameObject before adding/configuring `PerspectiveCamera` and activates it afterwards, so `Awake()` sees `initialPerspective`. Compile check passed; PlayMode tests still not executed.
 
 ## 8. Stage 2 code review (Ponytail, 2026-11-24)
 
@@ -162,3 +163,13 @@ No automated test results are recorded because the tests have not been run.
 5. The final-position `CheckSphere` runs every frame even on a clear hit. It is deliberate safety, not measured slowness; three physics queries per frame are cheap for one camera.
 
 **Review verdict:** no must-fix issues; ship Stage 2 as implemented. Not checked: PlayMode test execution and automated profiling, both blocked by the open Unity editor.
+
+## 8b. PlayMode test fixture correction (2026-11-24)
+
+**Problem:** `CreateCamera()` in `PerspectiveCameraCollisionTests.cs` added `PerspectiveCamera` to an active GameObject. Unity runs `Awake()` during `AddComponent`, so `initialPerspective` was still the default ThirdPerson when `Awake` set `_perspective` and `_blend`. The later reflection write of FirstPerson was too late; `FirstPersonOffset_IsPreserved` saw a TPP pose roughly 4 units from the expected FPP position.
+
+**Change (test fixture only):** `CreateCamera()` now calls `go.SetActive(false)` before adding components, applies all reflected settings and `CameraTarget` while inactive, then calls `go.SetActive(true)`. Unity defers `Awake()` until activation, so the component initializes from the configured fields. Production runtime files were not touched; the failing assertion and all other test setups are unchanged.
+
+**Verification — verified by the agent:** PlayMode test assembly compile check after the change: **succeeded, 0 errors**, 2 expected CS0649 warnings from runtime serialized fields. `git diff --check` reported no whitespace errors.
+
+**Automated tests: still NOT executed.** The Unity editor holds the project lock; no PlayMode result is claimed. The fix is expected to make the fixture deterministic, but that expectation is unverified in Unity.

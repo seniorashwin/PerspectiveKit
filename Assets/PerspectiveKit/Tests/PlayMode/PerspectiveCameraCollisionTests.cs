@@ -234,12 +234,14 @@ namespace PerspectiveKit.Tests
             Perspective initial = Perspective.ThirdPerson)
         {
             GameObject go = new GameObject("TestCamera");
+            go.SetActive(false);
             go.AddComponent<Camera>();
             PerspectiveCamera component = go.AddComponent<PerspectiveCamera>();
             SetField(component, "initialPerspective", initial);
             SetField(component, "transitionDuration", 0f);
             SetField(component, "thirdPerson", thirdPerson);
             component.CameraTarget = target;
+            go.SetActive(true);
             return component;
         }
 
