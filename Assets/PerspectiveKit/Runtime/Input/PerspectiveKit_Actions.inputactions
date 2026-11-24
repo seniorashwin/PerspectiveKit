@@ -1,0 +1,79 @@
+{
+    "version": 1,
+    "name": "PerspectiveKit_Actions",
+    "maps": [
+        {
+            "name": "Camera",
+            "id": "28f56a48-0449-458b-ab28-b1bcdbe2f019",
+            "actions": [
+                {
+                    "name": "Look",
+                    "type": "Value",
+                    "id": "b559384d-ac4c-47a6-9823-7558945cf62c",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true,
+                    "priority": 0
+                },
+                {
+                    "name": "TogglePerspective",
+                    "type": "Button",
+                    "id": "bf2363d3-a70a-4ae3-b8be-ac3840a97989",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "54de477a-4f6e-4607-b8e9-bf446759fc8e",
+                    "path": "<Pointer>/delta",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Look",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e59dc939-e285-4c2f-a881-5e5920a35c3a",
+                    "path": "<Gamepad>/rightStick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Look",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c6ddcbd7-78c0-4bed-8f9b-5c2a56ef51b8",
+                    "path": "<Keyboard>/v",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TogglePerspective",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "de830971-0adf-4354-9714-589e24dcd807",
+                    "path": "<Gamepad>/buttonNorth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TogglePerspective",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}

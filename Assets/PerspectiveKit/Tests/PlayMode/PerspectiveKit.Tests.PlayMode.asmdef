@@ -1,0 +1,11 @@
+{
+    "name": "PerspectiveKit.Tests.PlayMode",
+    "references": [
+        "PerspectiveKit.Runtime"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": []
+}
