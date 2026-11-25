@@ -1,13 +1,15 @@
 # PerspectiveKit Development Log
 
 Living document. Update at the end of every approved development stage.
-Last updated: 2026-11-24 (Stage 2 implementation, verification pending).
+Last updated: 2026-11-25 (Stage 4 Step 2 complete; 52/52 PlayMode tests reported passing; gameplay verification pending).
 
 ## 1. Purpose, scope, constraints
 
 **Purpose:** reusable, commercial-quality FPP/TPP camera system for Unity 6, distributed on itch.io. Developers integrate it into their own character controllers without replacing movement or animation.
 
 **Scope (v1):** perspective switching, configurable New Input System input, smooth transitions, independent FPP/TPP settings, TPP distance/height/shoulder offset, TPP obstruction handling, configurable character mesh visibility in FPP, inspector configuration, clean separation from character movement.
+
+**Product direction added 2026-11-25:** PerspectiveKit is now a combined camera system plus an **optional** built-in player controller. Camera-only users can keep using `PerspectiveCamera` with any custom controller; the built-in controller remains independent and never modifies camera state.
 
 **Constraints:**
 - Unity 6, C#, Linux and Windows development.
@@ -22,9 +24,13 @@ Last updated: 2026-11-24 (Stage 2 implementation, verification pending).
 | Stage | Scope | Status |
 |---|---|---|
 | 1 | Core component, FPP/TPP switching, settings, transitions, FPP offset, input ownership | **Completed** (2026-11-24) |
-| 2 | Third-person camera collision and obstruction handling | **In progress** — implemented 2026-11-24; Unity verification and automated test run pending |
-| 3 | Character renderer visibility in FPP | **Planned**, not specified |
-| 4 | Automated test suite, demo scene, distribution packaging | **Planned**, not specified |
+| 2 | Third-person camera collision and obstruction handling | **Completed** (2026-11-25; manual + PlayMode verification) |
+| 3 | Player controller foundations, movement modes input wiring, camera/controller integration tests | **Completed** (2026-11-25) |
+| 4 Step 1 | Acceleration and deceleration | **Completed** (2026-11-25) |
+| 4 Step 2 | Walk / Run / Sprint movement modes | **Completed** (2026-11-25) |
+| Deferred | FPP mesh visibility, separate air control, animation/root motion, crouch/slide, custom inspector, packaging | **Planned**, not implemented |
+
+**Historical roadmap note:** earlier versions of this table labelled Stage 3 as "character renderer visibility" and Stage 4 as "automated test suite, demo scene, distribution packaging". Those labels were revised by approval; the items remain deferred, not completed. The label change is recorded here so the older notes in this log stay readable.
 
 ## 3. Architecture decisions and reasons
 
@@ -74,7 +80,7 @@ These decisions were reviewed before implementation and are now reflected in the
 - Camera drift no longer occurs.
 - CameraTarget validation guard is applied.
 
-**Automated tests: NOT run.** No PlayMode or EditMode tests have been created or executed. The obstruction-during-transition PlayMode test is deferred to Stage 2.
+**Automated tests: NOT run.** No PlayMode or EditMode tests have been created or executed. The obstruction-during-transition PlayMode test is deferred to Stage 2. *(Historical note from 2026-11-24; superseded by the 52/52 PlayMode result recorded in section 6.)*
 
 ## 4b. Stage 2 — implementation record (2026-11-24)
 
@@ -101,8 +107,8 @@ These decisions were reviewed before implementation and are now reflected in the
 
 ## 5. Known bugs, limitations, unresolved issues
 
-- **Not implemented (by design):** character renderer visibility (Stage 3).
-- **Stage 2 was verified manually by the user in Unity 6** (see section 6). The nine PlayMode tests still have not been executed, so no automated result is claimed.
+- **Not implemented (deferred):** character renderer visibility in FPP, separate air control, animation/root motion, crouch/slide, custom inspector and package distribution.
+- **Stage 2 status update (2026-11-25):** the earlier note said its nine PlayMode tests had not been executed. They were later executed as part of the full suite, which the user reports as 52/52 passing after Stage 4 Step 2 (see section 6).
 - **Collision mask must exclude the character's layer.** The default mask is `~0` (everything); with a character collider on the pivot layer the `CheckSphere` origin test will report blocked and pin the camera to the target. Set `ThirdPerson.collision.collisionMask` before use.
 - **No automatic layer setup** and no camera fade on obstruction.
 - **`minimumDistance` is a framing clamp only**; obstruction clearance can put the camera closer than it.
@@ -112,8 +118,8 @@ These decisions were reviewed before implementation and are now reflected in the
 - **Touch/pen look delta** is scaled like a stick, not like mouse pixels. Only mouse-style devices are detected.
 - **No runtime zoom, custom inspector, automatic collision-layer setup, or package distribution structure.**
 - **Ownership is a contract:** if another system enables an action after PerspectiveKit enabled it, PerspectiveKit will still disable it on teardown.
-- **`Assets/Scenes/SampleScene.unity` was modified outside this implementation work** (Ground, Player, CameraTarget, configured `PerspectiveCamera`). Treat as user work; do not overwrite.
-- **Assumption not verified:** the manual test report says PerspectiveKit input ownership was used; the last scene file inspected still showed `ownership: 0` (`Host`) for both actions. No conclusion is drawn from this discrepancy.
+- **`Assets/Scenes/SampleScene.unity` was originally modified outside implementation work** (Ground, Player, CameraTarget, configured `PerspectiveCamera`). It was deliberately wired by the Stage 4 demo setup on 2026-11-25; do not overwrite it casually.
+- **Ownership discrepancy resolved:** the earlier note said the saved scene still had `ownership: 0` (`Host`) for the two camera actions. The current scene uses `ownership: 1` (`PerspectiveKit`) for all seven assigned actions.
 
 ## 6. Manual Unity verification record
 
@@ -132,9 +138,11 @@ These decisions were reviewed before implementation and are now reflected in the
 | FPP/TPP transitions with collision active | Remain smooth | User-reported manual test |
 | Looking around near walls | No visible clipping | User-reported manual test |
 
-**Still not manually verified:** clearance below `minimumDistance`, blocked-pivot behaviour, and exact padding distance. These are covered by PlayMode tests that have not been executed.
+**Still not manually verified:** clearance below `minimumDistance`, blocked-pivot behaviour, and exact padding distance. These were originally covered by tests that had not been executed; the full suite was later reported 52/52 passing on 2026-11-25, but those specific edge cases have no separate manual verification record.
 
-No automated test results are recorded because the tests have not been run.
+**Automated result (user-reported, 2026-11-25):** 52/52 PlayMode tests passed after Stage 4 Step 2. This updates the earlier "tests not run" notes above; those notes are kept as the historical record of when the suite did not yet exist. The agent did not execute Unity PlayMode tests.
+
+**Scene wiring (applied and reloaded in Unity, 2026-11-25):** `SampleScene` now has `CharacterController` + `PerspectiveCharacterController` on Player, the existing `CapsuleCollider` disabled, `CameraTarget` assigned to the child Transform, the controller's `Camera Transform` assigned to Main Camera, seven action references with `PerspectiveKit` ownership, camera collision mask `256` (Obstecles) and controller ground mask `128` (Ground). **Actual gameplay verification of the demo is still pending** — reload success is not a playtest.
 
 ## 7. Chronological progress
 
@@ -148,6 +156,10 @@ No automated test results are recorded because the tests have not been run.
 - **2026-11-24 — Stage 2 manual verification:** user reported walls, recovery, transitions and near-wall look working in Unity 6. Recorded as user-verified, not automated.
 - **2026-11-24 — Stage 2 Ponytail review:** reviewed collision helper, component integration, settings, 9 tests, allocations and Unity 6/Input System compatibility. No critical bug found; optional improvements recorded in section 8. No code changed by the review.
 - **2026-11-24 — Test fixture correction:** `CreateCamera()` deactivates the GameObject before adding/configuring `PerspectiveCamera` and activates it afterwards, so `Awake()` sees `initialPerspective`. Compile check passed; PlayMode tests still not executed.
+- **2026-11-25 — Stage 3:** built `PerspectiveCharacterController`, `PlayerControllerSettings`, `MouseAimSolver`, 13 controller tests and 3 camera/controller integration tests. PlayMode failures were diagnosed and fixed in test fixtures/assertions, not runtime code. Stage 3 completed with 36/36 tests reported passing.
+- **2026-11-25 — Stage 4 Step 1:** added independently configurable acceleration and deceleration (zero defaults preserve instant movement) with five tests; suite reported 41/41.
+- **2026-11-25 — Stage 4 Step 2:** added `MovementMode { Walk, Run, Sprint }`, `sprintSpeed`, optional `CycleMovementMode` action and eleven focused tests; suite reported 52/52.
+- **2026-11-25 — Demo scene wiring:** `SampleScene` configured with the controller, camera Transform/target, seven owned input references, layer masks and demo movement values. Scene reloaded in Unity; gameplay playtest still pending.
 
 ## 8. Stage 2 code review (Ponytail, 2026-11-24)
 
@@ -173,3 +185,24 @@ No automated test results are recorded because the tests have not been run.
 **Verification — verified by the agent:** PlayMode test assembly compile check after the change: **succeeded, 0 errors**, 2 expected CS0649 warnings from runtime serialized fields. `git diff --check` reported no whitespace errors.
 
 **Automated tests: still NOT executed.** The Unity editor holds the project lock; no PlayMode result is claimed. The fix is expected to make the fixture deterministic, but that expectation is unverified in Unity.
+
+## 9. Stage 3 / Stage 4 implementation record (2026-11-25)
+
+**Runtime files created:** `Runtime/Player/PerspectiveCharacterController.cs`, `Runtime/Player/PlayerControllerSettings.cs`, `Runtime/Player/MouseAimSolver.cs`.
+
+**Input asset additions (additive only):** Player map gained `CycleMovementMode` (Keyboard `M`, Gamepad D-pad Right). All existing action and binding IDs were preserved.
+
+**Controller features completed:** camera-relative movement, normalized diagonals, walk/run speed selection, jump/gravity with ground probe, three rotation modes (`MovementDirection`, `CameraDirection`, `MouseAim` with `ScreenCentre` and `PointerPosition`), independent facing, acceleration/deceleration, and `MovementMode { Walk, Run, Sprint }` with mode cycling. `Respawn` resets movement state but preserves the selected mode.
+
+**Tests:** 13 controller tests, 3 integration tests, 11 solver tests and 9 collision tests — 52 total. User-reported PlayMode result after Stage 4 Step 2: **52/52 passed**. Test-side failures during development were traced to fixture geometry, event timing and assertions; runtime code was not changed to make tests pass.
+
+**SampleScene demo configuration (applied and reloaded):**
+- Player: existing `Transform`, `MeshFilter`, `MeshRenderer`; `CapsuleCollider` disabled; added `CharacterController` (height 2, radius 0.5, center 0,0,0) and `PerspectiveCharacterController`.
+- `CameraTarget` = child `TargetCamera` Transform; controller `Camera Transform` = Main Camera Transform.
+- Seven input references: Player/Move, Sprint, Jump, PointerPosition, CycleMovementMode plus Camera/Look and Camera/TogglePerspective, all `ownership: 1` (`PerspectiveKit`).
+- Camera collision mask `256` (Obstecles layer only); controller ground mask `128` (Ground layer only).
+- Demo movement settings: `MovementMode Walk`, `rotationMode MovementDirection`, `walkSpeed 4`, `runSpeed 7`, `sprintSpeed 10`, `acceleration 8`, `deceleration 8`; gravity/jump defaults preserved.
+
+**Status distinction:** scene wiring has been applied and reloaded in Unity. **Gameplay verification of the playable demo is pending** and must not be reported as complete until the user playtests it.
+
+**Deferred, not complete:** FPP mesh visibility, separate air control, animation/root motion, crouch/slide, custom inspector, distribution packaging.

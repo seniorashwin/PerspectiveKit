@@ -1,7 +1,8 @@
 {
     "name": "PerspectiveKit.Tests.PlayMode",
     "references": [
-        "PerspectiveKit.Runtime"
+        "PerspectiveKit.Runtime",
+        "Unity.InputSystem"
     ],
     "optionalUnityReferences": [
         "TestAssemblies"
